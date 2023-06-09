@@ -1,8 +1,22 @@
 % hope_population_tester.m
 % Skeleton main driver code for fish tracker 3.0
-% Testing 6 luminance conditions for "Hope"
-% Updated 05/24/2023
-
+% If we want to test on one fish, what should we do?
+%
+% Here's the workflow for 6 luminance conditions for "Hope"
+% 1. Make a files struct
+% 2. Open whatever files in the directory automatically, make the head
+% direction tags
+% 3. Then, do tracker full process on them
+% 4. At the end, all the files (trials) in the folders should have their
+% videos and tracked data
+% 
+% [TODO]
+% 1. Make another script for automatically getting the head directions? Or
+% spend an hour or two for visual inspection is also fine
+% 2. Might need to clean up the files here, because tracker full process
+% isn't really working
+%
+% Updated 06/09/2023
 
 %% Format of the directory
 % this_fish_dir = 'hope_low_trial03_il_1\';
@@ -19,12 +33,12 @@ headDirectionTags = {};
 headDirectionTags.L1 = {'R','L','R','R'}; 
 headDirectionTags.L2 = {'L','L','L','R','L'}; 
 headDirectionTags.L3 = {'L','L'}; 
-headDirectionTags.L4 = {'R','R','L'};  
+headDirectionTags.L4 = {'R','L','L'};  
 headDirectionTags.L5 = {'L','L'};  
 headDirectionTags.L6 = {'L', 'L','L','L'};  
 
 % Loop through directories
-for i =  3 :folderCount % This controls the luminance level
+for i =  4 %3 :folderCount % This controls the luminance level
     folderName = [data_dir, 'L', num2str(i), '\'];
     subfolders = dir(folderName);
     subfolderNames = {subfolders([subfolders.isdir]).name};
@@ -35,7 +49,7 @@ for i =  3 :folderCount % This controls the luminance level
 
     % This controls the trial number in this luminance level
     numFiles = numel(subfolderNames);
-    for j = 1 : numFiles
+    for j = 2 %1 : numFiles
         % Process the full path
         subfolder = subfolderNames{j};
         thisFishDirectory = [fullfile(folderName, subfolder), '\'];
