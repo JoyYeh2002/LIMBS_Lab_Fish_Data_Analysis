@@ -1,0 +1,177 @@
+%% ruby_tail_prlim_analysis.m
+% Updated 10.06.2023
+% LIMBS Lab
+% Author: Huanying (Joy) Yeh
+
+% Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
+% Content: Ruby Full Body Tracking and Prelim Analysis
+% - Load in the data
+% - Build data structure
+% - FFT, position distributions, velocity, and curvature plots
+
+%% 0. Load the big struct
+close all;
+
+abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Data\';
+fish_name = 'Ruby';
+data_dir_name = 'ruby_pilot_data_full_body\';
+out_dir_name = 'outputs\data_structures\';
+out_dir_figures = 'outputs\figures\';
+struct_filename = [abs_path, data_dir_name, out_dir_name, 'all_fish_body_struct.mat'];
+
+all_fish_data = load(struct_filename).all_fish_data;
+
+% [REF] will be automatically looped
+directories = {'trial10_il_9_1\', ...
+    'trial26_il_3_-1\', ...
+    'trial32_il_6_1\', ...
+    'trial23_il_1_-1\', ...
+    'trial40_il_1_-1\'};
+
+i = queryStruct(all_fish_data, 'fish_name', fish_name);
+
+%% 1. User inputs / control panel to access a certain trial
+il = 9;
+do_analysis_01 = 0;
+do_analysis_02 = 1;
+
+% Loop thru all the trials under this il condition [TODO] Populate more
+for idx = 1 % : numel(all_fish_data(i).luminance(il).data)
+    trial_idx = all_fish_data(i).luminance(il).trial_indices(idx);
+    data = all_fish_data(i).luminance(il).data(idx);
+    head_dir = data.head_dir;
+
+    % Create sample data
+    x = {data.x_rep1, data.x_rep2, data.x_rep3};
+    y = {data.y_rep1, data.y_rep2, data.y_rep3};
+    titles = {'Rep 1', 'Rep 02', 'Rep 03'};
+    numPoints = size(data.x_data_raw, 2);
+    myColorMap = jet(numPoints);
+
+    if do_analysis_01 == 1
+        disp('SUCCESS: running analysis_01: rainbow plots for tail swings.')
+   
+
+        % Create the main figure with initial width and height
+        figureWidth = 600;  % Initial width (adjust as needed)
+        figureHeight = 900;  % Initial height (adjust as needed)
+        mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
+
+        % Create each subplot
+        for i = 1 :numel(y)
+            % Call the plotting function for the current subplot
+            if i == 1
+                title = [fish_name, ' Il = ', num2str(il), ' Trial #',...
+                    num2str(trial_idx), ' (1777 Frames Total), Rep 01'];
+            else
+                title = titles{i};
+            end
+            plotScatterWithColorbar(i, x{i}, y{i}, myColorMap, title);
+        end
+
+        fig_out_path = [abs_path, data_dir_name, out_dir_figures];
+        fig_out_filename = [fish_name, '_trial_', num2str(trial_idx), ...
+            '_il_', num2str(il), '_', num2str(head_dir), '.png'];
+
+        saveas(mainFigure, [fig_out_path, fig_out_filename]);
+        disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
+    end
+
+
+    if do_analysis_02 == 1
+        disp('SUCCESS: running analysis_02: tail top time-domain.')
+
+        % Create the main figure with initial width and height
+        figureWidth = 600;  % Initial width (adjust as needed)
+        figureHeight = 900;  % Initial height (adjust as needed)
+        mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
+
+        % Create each subplot
+        for i = 1 :numel(y) % there are 3 repetitions
+            % Call the plotting function for the current subplot
+            if i == 1
+                title = [fish_name, ' Il = ', num2str(il), ' Trial #',...
+                    num2str(trial_idx), ' (1777 Frames Total), Rep 01'];
+            else
+                title = titles{i};
+            end
+
+            xLim = [0, 500];
+            yLim = [80, 140];
+
+            titleText = [fish_name, 'Tail TD Positions, Il = ', num2str(il), ' Trial #',...
+                num2str(trial_idx), ' (1777 Frames Total), Rep 01'];
+
+            plotTailPointTimeDomainScatterWithColorbar(i, x{i}, y{i}, ...
+                xLim, yLim, myColorMap, titleText)
+
+        end
+
+        fig_out_path = [abs_path, data_dir_name, out_dir_figures];
+        fig_out_filename = [fish_name, 'tail_tip_swing_tr_', num2str(trial_idx), ...
+            '_rep_', num2str(rep_idx), ...
+            '_il_', num2str(il), '_', num2str(head_dir), '.png'];
+
+        saveas(gcf, [fig_out_path, fig_out_filename]);
+        disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
+    end
+
+
+
+    %% Helper: Find struct by field name
+    function i = queryStruct(struct, fieldName, query)
+    for i = 1:numel(struct)
+        if isfield(struct(i), fieldName) && isequal(struct(i).(fieldName), query)
+            return;
+        end
+    end
+    end
+
+
+    %% Helper: rainbow in a subplot
+    function plotScatterWithColorbar(subplotNum, xData, yData, myColorMap, titleText)
+
+    subplot(3, 1, subplotNum);
+    numPoints = size(xData, 2);
+
+    % Plot all columns with the jet colormap
+    hold on;
+    for col = 1:numPoints
+        scatter(xData(:, col), yData(:, col), 10, myColorMap(col, :), 'filled');
+    end
+    hold off;
+
+    colormap(myColorMap);
+    colorbar;
+
+    xlim([0, 640]);
+    ylim([0, 190]);
+    title(titleText);
+
+    grid on;
+    end
+
+
+    %% Helper: tail point t-d movement a 3-panel vertical subplot
+    function plotTailPointTimeDomainScatterWithColorbar(subplotNum, xData, yData, ...
+        xLim, yLim, myColorMap, titleText)
+
+    subplot(3, 1, subplotNum);
+    numPoints = size(xData, 2); % Use all 12 points
+
+    % Plot all columns with the jet colormap
+    hold on;
+    for col = 1:numPoints
+        scatter(xData(:, col), yData(:, col), 10, myColorMap(col, :), 'filled');
+    end
+    hold off;
+
+    colormap(myColorMap);
+    colorbar;
+
+    xlim(xLim);
+    ylim(yLim);
+    title(titleText);
+
+    grid on;
+    end
