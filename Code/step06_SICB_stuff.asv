@@ -1,0 +1,6 @@
+% Cache 02: SICB data loader
+close all;
+abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Data\SICB_data\';
+out_dir_figures = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\AAA_playground\';
+
+big = load([abs_path, 'bigStructWithVariance.mat']);
