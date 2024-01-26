@@ -1,41 +1,39 @@
-%% all_fish_tail_prlim_analysis.m
-% Updated 11.17.2023
+%% Step 12: Pilot Body Rotated / Rainbow Plot
+% Comparison of Len Il = 4, Trial 31 (body was visibly slanted)
+% Check angle correction
+% Updated 01.22.2024
 % LIMBS Lab
 % Author: Huanying (Joy) Yeh
 
-% Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
-% Content: Ruby Full Body Tracking and Prelim Analysis
-% - Load in the data
-% - Build data structure
-% - FFT, position distributions, velocity, and curvature plots
-
 %% 0. Load the big struct
 close all;
-abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Data\';
+
+abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\data\';
 out_dir_figures = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\';
-struct_filename = [abs_path, 'all_fish_full_length_data.mat'];
+out_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\step10_fish_rotation\';
+test_subject = 'len_il_4_trial_31\';
+struct_file = load([out_path, 'rotated_fish.mat']); % All the raw + cleaned data labels for Bode analyis
+all_fish_data = struct_file.mBody.all_fish_data;
 
-all_fish_data = load(struct_filename).all_fish_data;
+% Locate the subject fish
+fish_idx = 3;
+luminance_lvl = 4;
+tr_idx = 2;
 
-% [REF] will be automatically looped
-% directories = {'trial10_il_9_1\', ...
-%     'trial26_il_3_-1\', ...
-%     'trial32_il_6_1\', ...
-%     'trial23_il_1_-1\', ...
-%     'trial40_il_1_-1\'};
-%% 1. sdjfkhdkjfhds
-fishNames = {'Doris', 'Len', 'Ruby', 'Finn'};
+
+fishNames = {'Len', 'Hope', 'Ruby', 'Finn', 'Doris'};
+
 for k = 1:numel(fishNames)
-    fish_name = fishNames{k}
+    fish_name = fishNames{k};
     fish_idx = queryStruct(all_fish_data, 'fish_name', fish_name);
 
     %% 1. User inputs / control panel to access a certain trial
-    do_analysis_01 = 0;
-    do_analysis_02 = 1;
+    do_analysis_01 = 1;
+    do_analysis_02 = 0;
 
-    % disp('SUCCESS: running analysis_01: rainbow plots for tail swings.')
     disp('SUCCESS: running analysis_02: tail top time-domain.')
-    for il = [1:9]
+    for il = 1 : numel(all_fish_data(fish_idx).luminance) 
+       
         % Loop thru all the trials under this il condition [TODO] Populate more
         for idx = 1 : numel(all_fish_data(fish_idx).luminance(il).data)
             trial_idx = all_fish_data(fish_idx).luminance(il).trial_indices(idx);
@@ -43,9 +41,15 @@ for k = 1:numel(fishNames)
             head_dir = data.head_dir;
 
             % Create sample data
-            x = {data.x_rep1, data.x_rep2, data.x_rep3};
-            y = {data.y_rep1, data.y_rep2, data.y_rep3};
-            titles = {'Rep 1', 'Rep 02', 'Rep 03'};
+            % x = {data.x_rep1, data.x_rep2, data.x_rep3};
+            % y = {data.y_rep1, data.y_rep2, data.y_rep3};
+
+            % [NEW] Use rotated implementation
+            x = {data.x_rot_rep1, data.x_rot_rep2, data.x_rot_rep3};
+            y = {data.y_rot_rep1, data.y_rot_rep2, data.y_rot_rep3};
+
+            titles = {'Rep 1_rot', 'Rep 02_rot', 'Rep 03_rot'};
+            
             numPoints = size(data.x_data_raw, 2);
             myColorMap = jet(numPoints);
 
@@ -67,7 +71,10 @@ for k = 1:numel(fishNames)
                     plotScatterWithColorbar(i, x{i}, y{i}, myColorMap, title);
                 end
 
-                fig_out_path = [out_dir_figures, fish_name,'_Analysis01\'];
+                fig_out_path = [out_dir_figures, 'Rotated_Analysis01_', fish_name, '\'];
+                if ~exist(fig_out_path, 'dir')
+                    mkdir(fig_out_path);
+                end
                 fig_out_filename = [fish_name, '_il_', num2str(il), ...
                     '_trial_', num2str(trial_idx), '_', num2str(head_dir), '.png'];
 
@@ -103,7 +110,7 @@ for k = 1:numel(fishNames)
 
                 end
 
-                fig_out_path = [out_dir_figures, fish_name,'_Analysis02\'];
+                fig_out_path = [out_dir_figures, fish_name,'_Rotated_Analysis02\'];
                 if ~exist(fig_out_path, 'dir')
                     mkdir(fig_out_path);
                 end

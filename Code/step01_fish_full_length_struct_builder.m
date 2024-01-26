@@ -17,19 +17,10 @@ all_fish_data = initializeFishStruct(fishNames, numIls, numFish);
 
 %% 1. For Ruby Pilot: load Excel .csv data from local (4 pilot trials data)
 abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Data\fish\';
-% fish_name = 'Ruby';
-% data_dir_name = 'ruby_pilot_data_full_body\'; % [INPUT] This could be changed
 out_dir_name = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Data\'; % [INPUT] could modify or add more fish
 
 x_filename = 'x_interp_data.csv';
 y_filename = 'y_interp_data.csv';
-
-% [Updated 10/27] loop through all the fish, rather than Ruby Pilot
-% directories = {'trial10_il_9_1\', ...
-%     'trial26_il_3_-1\', ...
-%     'trial32_il_6_1\', ...
-%     'trial23_il_1_-1\', ...
-%     'trial40_il_1_-1\'};
 
 % Define the base folder
 % baseFolder = 'fish';  % Replace with the path to your "fish" folder
@@ -38,6 +29,7 @@ y_filename = 'y_interp_data.csv';
 for fish_idx = 1 : numel(fishNames)
     fish_name = fishNames{fish_idx};
     disp(['Processing fish: ', fish_name, '...'])
+
     % Find the struct for this fish (Ruby)
     i = queryStruct(all_fish_data, 'fish_name', fish_name);
 
@@ -85,9 +77,9 @@ for fish_idx = 1 : numel(fishNames)
 end
 
 %% 3. Save the struct as it. In later scripts, just load this
-% out_struct_filename = [abs_path, 'all_fish_full_length_data.mat'];
-% save(out_struct_filename, 'all_fish_data');
-% disp(['SUCCESS: ', out_struct_filename, ' is saved.'])
+out_struct_filename = [abs_path, 'all_fish_full_length_data.mat'];
+save(out_struct_filename, 'all_fish_data');
+disp(['SUCCESS: ', out_struct_filename, ' is saved.'])
 
 %% -------------------------- ALL HELPER FUNCTIONS ARE HERE -------------------------------------
 %% Helper: extract dir name info
