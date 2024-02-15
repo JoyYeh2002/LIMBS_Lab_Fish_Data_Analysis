@@ -1,5 +1,7 @@
-% Step 13: Visual inspection of full body trials, from step12 rainbow plots
-% Manually select the clean trials - take out tracking loss
+% Step 13.2: Include clean tags from head data.
+% Load in the "clean tags" struct
+% Slight modifications from step 13.
+% Now we're using good trials
 
 % Fish
 close all;
@@ -11,6 +13,8 @@ struct_file = load([abs_path, 'rotated_fish.mat']); % All the raw + cleaned data
 all_fish = struct_file.mBody.all_fish_data;
 
 fish_names = {'Hope', 'Ruby','Len', 'Finn', 'Doris'};
+
+body_bad_tags = struct();
 
 % This means il = 1, trial 3, rep 3
 bad_trials_Hope = [1, 3, 3;
@@ -42,6 +46,8 @@ bad_trials_Hope = [1, 3, 3;
     10, 31, 2;];
 
 % Assign struct ---------------------------------
+body_bad_tags(1).name = 'Hope';
+body_bad_tags(1).tags = bad_trials_Hope;
 all_fish(1).bad_trials = bad_trials_Hope;
 
 
@@ -58,6 +64,8 @@ bad_trials_Ruby = [1, 23, 2;
     9, 7, 1;];
 
 % Assign struct
+body_bad_tags(2).name = 'Ruby';
+body_bad_tags(2).tags = bad_trials_Ruby;
 all_fish(2).bad_trials = bad_trials_Ruby;
 
 % This means il = 1, trial 3, rep 3
@@ -71,6 +79,8 @@ bad_trials_Len = [3, 26, 2;
     8, 19, 3;];
 
 % Assign struct ------------------------------
+body_bad_tags(3).name = 'Len';
+body_bad_tags(3).tags = bad_trials_Len;
 all_fish(3).bad_trials = bad_trials_Len;
 
 % This means il = 1, trial 3, rep 3
@@ -98,6 +108,8 @@ bad_trials_Finn = [1, 23, 1;
     6, 43, 3;];
 
 % Assign struct ------------------------------
+body_bad_tags(4).name = 'Finn';
+body_bad_tags(4).tags = bad_trials_Finn;
 all_fish(4).bad_trials = bad_trials_Finn;
 
 
@@ -120,10 +132,11 @@ bad_trials_Doris = [
     9, 20, 2;];
 
 % Assign struct ------------------------------
+body_bad_tags(5).name = 'Doris';
+body_bad_tags(5).tags = bad_trials_Doris;
 all_fish(5).bad_trials = bad_trials_Doris;
 
-
-% [TODO] Two more fish to go
+save([out_path, 'body_bad_tags.mat'], 'body_bad_tags');
 
 for k = 1 : numel(fish_names)
     fish_name = fish_names{k}; % Hope

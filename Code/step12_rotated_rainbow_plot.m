@@ -21,17 +21,18 @@ luminance_lvl = 4;
 tr_idx = 2;
 
 
-fishNames = {'Len', 'Hope', 'Ruby', 'Finn', 'Doris'};
+fishNames = {'Ruby', 'Finn', 'Doris'};
 
 for k = 1:numel(fishNames)
     fish_name = fishNames{k};
     fish_idx = queryStruct(all_fish_data, 'fish_name', fish_name);
 
     %% 1. User inputs / control panel to access a certain trial
-    do_analysis_01 = 1;
+    do_analysis_01 = 0;
     do_analysis_02 = 0;
-
-    disp('SUCCESS: running analysis_02: tail top time-domain.')
+    do_analysis_03 = 0; % [NOT DONE YET]
+    
+    % Prep data
     for il = 1 : numel(all_fish_data(fish_idx).luminance) 
        
         % Loop thru all the trials under this il condition [TODO] Populate more
@@ -48,15 +49,16 @@ for k = 1:numel(fishNames)
             x = {data.x_rot_rep1, data.x_rot_rep2, data.x_rot_rep3};
             y = {data.y_rot_rep1, data.y_rot_rep2, data.y_rot_rep3};
 
-            titles = {'Rep 1_rot', 'Rep 02_rot', 'Rep 03_rot'};
+            titles = {'Rep 01', 'Rep 02', 'Rep 03'};
             
             numPoints = size(data.x_data_raw, 2);
             myColorMap = jet(numPoints);
 
-            if do_analysis_01 == 1
+            % Scattered rainbow plots
+            if do_analysis_01 == 1 
                 % Create the main figure with initial width and height
                 figureWidth = 600;  % Initial width (adjust as needed)
-                figureHeight = 900;  % Initial height (adjust as needed)
+                figureHeight = 980;  % Initial height (adjust as needed)
                 mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
 
                 % Create each subplot
@@ -71,7 +73,7 @@ for k = 1:numel(fishNames)
                     plotScatterWithColorbar(i, x{i}, y{i}, myColorMap, title);
                 end
 
-                fig_out_path = [out_dir_figures, 'Rotated_Analysis01_', fish_name, '\'];
+                fig_out_path = [out_dir_figures, 'Analysis01_', fish_name, '\'];
                 if ~exist(fig_out_path, 'dir')
                     mkdir(fig_out_path);
                 end
@@ -82,14 +84,15 @@ for k = 1:numel(fishNames)
                 % disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
             end
 
-
+            % Time domain 12-point rainbow plots (20s each), 3 vertical
+            % stacked panels
             if do_analysis_02 == 1
               
                 % Crete the timeline. Unit: seconds
                 time = 0 : 0.04 : 19.96;
                 % Create the main figure with initial width and height
                 figureWidth = 600;  % Initial width (adjust as needed)
-                figureHeight = 900;  % Initial height (adjust as needed)
+                figureHeight = 980;  % Initial height (adjust as needed)
                 mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
 
                 % Create each subplot
@@ -103,14 +106,73 @@ for k = 1:numel(fishNames)
                     end
 
                     xLim = [0, 20]; % timeline x-axis is out of 20 seconds
-                    yLim = [0, 190];
+                    yLim = [-50, 250];
 
                     plotTailPointTimeDomainScatterWithColorbar(i, time, y{i}, ...
                         xLim, yLim, myColorMap, title)
 
                 end
 
-                fig_out_path = [out_dir_figures, fish_name,'_Rotated_Analysis02\'];
+                fig_out_path = [out_dir_figures, 'Rainbow_Plots_', fish_name,'\'];
+                if ~exist(fig_out_path, 'dir')
+                    mkdir(fig_out_path);
+                end
+                
+                fig_out_filename = [fish_name, '_TD_Tail_il_', num2str(il), ...
+                    '_trial_', num2str(trial_idx), '_', num2str(head_dir), '.png'];
+
+                saveas(mainFigure, [fig_out_path, fig_out_filename]);
+                disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
+         
+            end
+
+            % [NEW] RMS plots 
+            if do_analysis_03 == 1
+                % Do some calculations of RMS
+                % Calculate displacement by taking the difference between consecutive coordinates
+
+                 x = {data.x_rot_rep1, data.x_rot_rep2, data.x_rot_rep3};
+                 y = {data.y_rot_rep1, data.y_rot_rep2, data.y_rot_rep3};
+
+                
+                displacement = sqrt(diff(x).^2 + diff(y).^2);
+
+% Calculate RMS of the displacement
+rms_displacement = sqrt(mean(displacement.^2));
+
+disp(['RMS Displacement: ', num2str(rms_displacement)]);
+
+plot_title = [test_subject(1:end-1), '_rep = ', ...
+    num2str(rep_idx), '_body_idx = ', num2str(body_point_idx), '_', 'Displacement = ', num2str];
+plot_title = strrep(plot_title, '_', ' ');
+
+              
+                % Crete the timeline. Unit: seconds
+                time = 0 : 0.04 : 19.96;
+                % Create the main figure with initial width and height
+                figureWidth = 600;  % Initial width (adjust as needed)
+                figureHeight = 980;  % Initial height (adjust as needed)
+                mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
+
+                % Create each subplot
+                for i = 1 : numel(y) % there are 3 repetitions
+                    % Call the plotting function for the current subplot
+                    if i == 1
+                        title = [fish_name, ' Tail TD Positions, Il = ', num2str(il), ' Trial #',...
+                            num2str(trial_idx), ' (20s), Rep 01'];
+                    else
+                        title = titles{i};
+                    end
+
+                    xLim = [0, 20]; % timeline x-axis is out of 20 seconds
+                    yLim = [-50, 250];
+
+                    plotTailPointTimeDomainScatterWithColorbar(i, time, y{i}, ...
+                        xLim, yLim, myColorMap, title)
+
+                end
+
+                fig_out_path = [out_dir_figures, 'Rainbow_Plots_', fish_name,'\'];
                 if ~exist(fig_out_path, 'dir')
                     mkdir(fig_out_path);
                 end
@@ -125,16 +187,17 @@ for k = 1:numel(fishNames)
         end
         disp([' ----- COMPLETED IL = ', num2str(il), '-----\n']);
     end
-    disp('SUCCESS: ALL PLOTS GENERATED.')
+    disp(['SUCCESS: ALL PLOTS GENERATED FOR FISH ', fish_name, '.'])
 end
+
 
 %% Helper: Find struct by field name
 function i = queryStruct(struct, fieldName, query)
-for i = 1:numel(struct)
-    if isfield(struct(i), fieldName) && isequal(struct(i).(fieldName), query)
-        return;
+    for i = 1:numel(struct)
+        if isfield(struct(i), fieldName) && isequal(struct(i).(fieldName), query)
+            return;
+        end
     end
-end
 end
 
 
@@ -164,7 +227,7 @@ set(h, 'XTick', custom_ticks);
 set(h, 'XTickLabel', custom_labels);
 
 xlim([0, 640]); % The axis bounds are the same as the camera frame size
-ylim([0, 190]);
+ylim([-50, 250]);
 xlabel("X-Pos (pixel)")
 ylabel("Y-Pos (pixel)")
 
