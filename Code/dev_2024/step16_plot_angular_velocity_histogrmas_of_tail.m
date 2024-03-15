@@ -11,12 +11,14 @@ close all;
 abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\data\fish_structs_2024\';
 out_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\';
 
-struct_file = load([abs_path, 'res_RMS_VELOCITY_ANGULAR.mat']); % All the raw + cleaned data labels for Bode analyis
+struct_file = load([abs_path, 'result_rms_velocity_angular.mat']); % All the raw + cleaned data labels for Bode analyis
 res = struct_file.res;
 
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 numFish = 5;
 num_body_pts = 12;
+resolution = 30;
+lux_axis_limit = [0, 210];
 
 %% 2. [User inputs] for adjusting the plot
 data_field = "v_angular";
@@ -85,12 +87,14 @@ end
 for i = 1 : numFish
     fish_name = fishNames{i};
     num_il_levels = numel(res(i).luminance);
+    lux = res(i).lux_values;
 
     % data = res(i).velocities;
     data = res(i).(data_field);
 
+   
     data_cell = data';
-    edges = linspace(min(data_cell{1}(:)), max(data_cell{1}(:)), 100); % Adjust the range based on your data
+    edges = linspace(min(data_cell{1}(:)), max(data_cell{1}(:)), resolution+1); % Adjust the range based on your data
     hist_values = zeros(length(edges)-1, numel(data_cell));
 
     % Compute histograms for each array
@@ -103,9 +107,12 @@ for i = 1 : numFish
         hist_values = movmean(hist_values, kb_kf); % Adjust window size as needed
     end
 
-    [X, Y] = meshgrid(edges(1:end-1), 1:numel(data_cell));
+    [X, Y] = meshgrid(edges(1:end-1), lux);
     figure('Color', 'white', 'Position', position_coords);
-    p = waterfall(X,Y,hist_values');
+
+
+    p = surf(X, Y,hist_values' * 100);
+    set(gca, 'YScale', 'log');
 
     p.FaceAlpha = 0.3;
     p.EdgeColor = 'interp';
@@ -113,11 +120,14 @@ for i = 1 : numFish
     view(view_coords);
 
     xlabel(x_label);
-    ylabel('Illumination Levels');
-    yticks(1:numel(data_cell));
+    ylabel('Lux Values (log scale)')
+    
+    %yticks(lux);
+    yticks([0, 0.2, 1, 2, 2.5, 5, 7, 9, 15, 60, 150, 210])
 
-    zlabel('Probability')
-    zlim(z_limit);
+    zlabel('Probability (%)')
+    ylim(lux_axis_limit);
+    zlim(z_limit * 100);
 
     % Set ticks for the color bar
     colorbar;

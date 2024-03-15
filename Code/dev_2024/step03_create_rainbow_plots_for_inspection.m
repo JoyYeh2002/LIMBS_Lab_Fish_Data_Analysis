@@ -8,6 +8,7 @@
 % Content:
 % - Use "raw_data_full_body.mat", generate two kinds of "rainbow plots"
 % - These help users visulaly inspect all trials and repetitons to detect tracking losses
+% - Output: save figures to "Rainbow Plots" and "Scatter Plpts"
 % - Next step leads to creating "body bad tags"
 
 %% 1. Load the big struct
@@ -15,18 +16,17 @@ close all;
 
 abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\data\fish_structs_2024\';
 out_dir_figures = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\';
-load([abs_path, 'raw_data_full_body.mat']); % All the raw + cleaned data labels for Bode analyis
+load([abs_path, 'data_clean_body.mat']); % All the raw + cleaned data labels for Bode analyis
 
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 numFish = 5;
 
 %% 2. User inputs / control panel to access a certain trial
-plot_scatter_points = 1;
-plot_on_time_scale = 0;
-
+plot_scatter_points = 0;
+plot_on_time_scale = 1;
 
 %% 3. Loop through everything
-for k = 1:5
+for k = 1 %:5
     fish_name = fishNames{k};
     fish_idx = queryStruct(all_fish, 'fish_name', fish_name);
 
@@ -74,7 +74,7 @@ for k = 1:5
                     plotScatterWithColorbar(i, x{i}, y{i}, myColorMap, title);
                 end
 
-                fig_out_path = [out_dir_figures, 'Scatter_', fish_name, '\'];
+                fig_out_path = [out_dir_figures, 'Scatter_Plots_', fish_name, '\'];
                 if ~exist(fig_out_path, 'dir')
                     mkdir(fig_out_path);
                 end

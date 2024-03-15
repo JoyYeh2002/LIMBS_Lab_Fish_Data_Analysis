@@ -1,126 +1,113 @@
-%% Step08_RMS_visualize.m
-% Visualize trends of RMS with one fish
-% Load in Hope for now
-% rms_reps, trial_rms, dist_reps, trial_distances
-%
-% Observe the RMS trends across luminances
-% Do more fish later
-%
-% All the experiment outputs are in
-% C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\
+%% Step03: plot_TD_tail_RMS.m
+% Updated 03.12.2024
+% LIMBS Lab
+% Author: Huanying (Joy) Yeh
 
-% Spring 2024 semester
-% updated 02/09/2024
+% Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
+%
+% Content:
+% - visualize only tail RMS movement (both x and y)?
+% - Outputs to "all_fish_centered_RMS.png"
 
-% Load in the data
+%% 0. Define file paths
 close all;
-
 abs_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\data\fish_structs_2024\';
-out_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\';
+fig_out_path = 'C:\Users\joy20\Folder\FA_2023\LIMBS Presentations\Outputs\RMS\';
+fig_out_filename = 'all_fish_centered_RMS.png';
 
-struct_file = load([abs_path, 'res_RMS.mat']); % All the raw + cleaned data labels for Bode analyis
-
-fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
-numFish = 5;
-ID = struct();
-
-num_body_pts = 12;
-
-% Loop settings
-for fish_idx = 1:5 % Now looking at fish #2
-    fish_name = fishNames{fish_idx};
-
-    % Make a container for all il levels for comparisons
-    num_il_levels = numel(all_fish(fish_idx).luminance);
-    this_fish_rms = cell(num_il_levels, 1);
-    this_fish_dist = cell(num_il_levels, 1);
-
-    for il = 1 : num_il_levels
-
-        % make a container for this il level, range = 5 trials here
-        num_trials = numel(all_fish(fish_idx).luminance(il).data);
-
-        % Collect over all body points
-        this_il_rms = zeros(num_trials, 12);
-        this_il_dist = zeros(num_trials, 12);
-
-        for trial_idx = 1 : num_trials
-            % Grab data from struct (12x1), (12x1). (no longer considering
-            % each rep)
-            trial_rms = all_fish(fish_idx).luminance(il).data(trial_idx).trial_rms;
-            trial_dist = all_fish(fish_idx).luminance(il).data(trial_idx).trial_distances;
-
-            this_il_rms(trial_idx, :) = trial_rms;
-            this_il_dist(trial_idx, :) = trial_dist;
-
-        end
-
-        this_fish_rms{il} = this_il_rms;
-        this_fish_dist{il} = this_il_dist;
-    end
-
-
-    % Use a 14x12 matrix to contain the average RMS data
-    this_fish_rms_avg = zeros(num_il_levels, num_body_pts);
-    this_fish_dist_avg = zeros(num_il_levels, num_body_pts);
-
-    for il = 1 : num_il_levels
-        this_fish_rms_avg(il, :) = nanmean(this_fish_rms{il}, 1);
-        % this_fish_dist_avg(il, :) = nanmean(this_fish_dist{il}, 1);
-    end
-
-
-    % Sample data (replace this with your actual 14x12 array)
-    % Sample data (replace this with your actual 14x12 array)
-    
-    data = this_fish_rms_avg;
-    % data = this_fish_dist_avg;
-
-
-    % Create a figure for plotting
-    figure;
-    map = cool(num_body_pts);
-
-    % Plot each data point across the 14 conditions (in meters)
-    for i = 1:num_body_pts
-        plot(1:num_il_levels, data(:, i), '-o', 'Color', map(i, :),'LineWidth', 2, 'DisplayName', ['Data Point ', num2str(i)]); % Plot data point with markers and set display name
-        hold on; % Hold the plot for overlaying multiple lines
-    end
-
-    % Add x and y labels
-    xlabel('Luminance Levels');
-    ylabel('RMS (cm)');
-    % ylabel('Total Distances (cm)');
-
-    % Add a color bar
-    h = colorbar;  % Get the handle to the color bar
-    custom_ticks = linspace(0, 1, num_body_pts); % Custom ticks for each body point
-    set(h, 'Ticks', custom_ticks);
-    set(h, 'TickLabels', num2cell(1:num_body_pts)); % Assuming body points are labeled numerically
-    xlabel(h, 'Luminance Levels');
-    ylabel(h, 'Body Points');
-    xlim([1, num_il_levels]);
-    ylim([0, 1]);
-
-    % Remove legend
-    legend('off');
-
-    % Set color map
-    colormap(map);
-
-    title([fish_name, ' All Luminance Levels RMS']);
-
-    % title([fish_name, ' All Luminance Levels Total Distances']);
-    fig_out_path = [out_path, 'RMS_plots\'];
-    if ~exist(fig_out_path, 'dir')
-        mkdir(fig_out_path);
-    end
-
-    fig_out_filename = ['RMS_both_whole_body_', fish_name, '.png'];
-
-    saveas(gcf, [fig_out_path, fig_out_filename]);
-    disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
-
+if ~exist(fig_out_path, 'dir')
+    mkdir(fig_out_path);
 end
 
+load([abs_path, 'result_rms_velocity.mat']) 
 
+%% 1. Get luminance levels
+fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
+num_fish = 5;
+num_body_pts = 12;
+target_pt = 12; % only look at tail
+field_name = 'rmsMean';
+colorMap = cool(num_fish + 1);
+
+figure;
+hold on;
+set(gca, 'XScale', 'log'); % Set log scale for x-axis
+
+%% 2. Gather data
+all_lux = [];
+all_data_pts = [];
+all_data_pts_processed = [];
+
+for i = 1:num_fish
+    this_data = res(i).(field_name);
+    this_data = this_data(:, 12);
+    all_data_pts = [all_data_pts; this_data];
+end
+
+mean_value_all = mean(all_data_pts);
+
+for i = 1:num_fish
+    lux = res(i).lux_values;
+    fish_name = fishNames{i};
+
+    data = res(i).(field_name);
+    data = data(:, 12);
+    mean_value_this = mean(data);
+
+    %% Centered, then smoothed for x-variance values
+    data_smoothed_centered = smooth(data - (mean_value_this - mean_value_all));
+   
+    all_lux = [all_lux, lux];
+    all_data_pts_processed = [all_data_pts_processed; data_smoothed_centered];
+
+    plot(lux, data_smoothed_centered, '-', 'Color', colorMap(i, :), 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 3, 'MarkerFaceColor', colorMap(i, :));
+end
+
+%% 3. Fit sigmoid function then plot it
+x = log(all_lux');
+y = all_data_pts_processed;
+[fitted_model, gof] = createSigmoidFit(x, y);
+
+num_sample_points = 500;
+x_sample_points = linspace(min(x), max(x), num_sample_points);
+y_sample_points = feval(fitted_model, x_sample_points);
+a = fitted_model.a;
+b = fitted_model.b;
+c = fitted_model.c;
+d = fitted_model.d;
+
+plot(exp(x_sample_points), y_sample_points, 'Color', 'k', 'LineWidth', 3)
+
+grid on; % Display grid
+title(['All Fish ', strrep(field_name, '_', ' '), ' Distributions']); % Set plot title
+subtitle(['Fitted Sigmoid: a=', num2str(a), ', b=', num2str(b), ...
+    ', c=', num2str(c), ', d=', num2str(d)]);
+
+x_ticks = res(1).lux_values;
+xticks(res(1).lux_values);
+xticklabels(x_ticks);
+
+xlim([0, 220]);
+
+xlabel('Illuminance (lux)');
+ylabel('Tail Point RMS Postion (cm^2)')
+legend('Fish 1', 'Fish 2', 'Fish 3', 'Fish 4', 'Fish 5', ['Fitted Sigmoid: R^2 = ', num2str(gof.rsquare)], 'Location', 'southwest'); % Add legend
+
+
+%% 4. Save to figure
+saveas(gcf, [fig_out_path, fig_out_filename]);
+disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
+
+
+%% Helper: Sigmoid parameters generated by MATLAB on 12-Mar-2024 15:48:24
+function [fitresult, gof] = createSigmoidFit(x, y)
+ 
+[xData, yData] = prepareCurveData( x, y );
+
+ft = fittype( 'a/(1+exp(-b*(x-c)))+d', 'independent', 'x', 'dependent', 'y' );
+opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
+opts.Display = 'Off';
+opts.StartPoint = [0.933993247757551 0.678735154857773 0.757740130578333 0.743132468124916];
+
+[fitresult, gof] = fit( xData, yData, ft, opts );
+end
