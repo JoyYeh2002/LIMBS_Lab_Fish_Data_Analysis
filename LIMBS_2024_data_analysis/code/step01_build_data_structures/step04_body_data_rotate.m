@@ -45,11 +45,7 @@ for k = 1 : numFish
                 [rotated_x(frame_idx, :), rotated_y(frame_idx, :)] = rotatePoints(x, y, x(2), y(2), theta);
                 
             end
-            
-            % Put back into the struct
-            % all_fish(fish_idx).luminance(il).data(tr_idx).x_rot = rotated_x;
-            % all_fish(fish_idx).luminance(il).data(tr_idx).y_rot = rotated_y;
-            
+
             % Segments into 3 reps, then save to struct
             all_fish(fish_idx).luminance(il).data(tr_idx).x_rot_rep1 = rotated_x(251 : 750, :);
             all_fish(fish_idx).luminance(il).data(tr_idx).x_rot_rep2 = rotated_x(751 : 1250, :);

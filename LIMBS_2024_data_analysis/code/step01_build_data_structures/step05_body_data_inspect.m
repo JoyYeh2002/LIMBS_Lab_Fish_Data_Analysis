@@ -28,8 +28,8 @@ numFish = 5;
 numPoints = 12;
 
 %% 2. User inputs / control panel to access a certain trial
-plot_scatter_points = 1;
-plot_on_time_scale = 0;
+plot_scatter_points = 0;
+plot_on_time_scale = 1;
 
 %% 3. Loop through everything
 for k = 1 : numFish
@@ -53,15 +53,15 @@ for k = 1 : numFish
             myColorMap = jet(numPoints);
 
             % Create the main figure with initial width and height
-            figureWidth = 600;  % Initial width (adjust as needed)
-            figureHeight = 980;  % Initial height (adjust as needed)
+            fig_width = 600;  % Initial width (adjust as needed)
+            fig_height = 980;  % Initial height (adjust as needed)
 
             % Crete the timeline (seconds)
             time = 0 : 0.04 : 19.96;
 
             % Scattered rainbow plots
             if plot_scatter_points == 1
-                mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
+                main_figure = figure('Position', [100, 30, fig_width, fig_height]);
 
                 % Create each subplot
                 for i = 1 :numel(y)
@@ -85,14 +85,14 @@ for k = 1 : numFish
                 fig_out_filename = [fish_name, '_il_', num2str(il), ...
                     '_trial_', num2str(trial_idx), '_', num2str(head_dir), '.png'];
 
-                saveas(mainFigure, [fig_out_path, fig_out_filename]);
+                saveas(main_figure, [fig_out_path, fig_out_filename]);
                 disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
             end
 
             % Time domain 12-point rainbow plots (20s each), 3 vertical
             % stacked panels
             if plot_on_time_scale == 1
-                mainFigure = figure('Position', [100, 30, figureWidth, figureHeight]);
+                main_figure = figure('Position', [100, 30, fig_width, fig_height]);
 
                 % Create each subplot
                 for i = 1 :numel(y) % there are 3 repetitions
@@ -112,7 +112,8 @@ for k = 1 : numFish
                         xLim, yLim, myColorMap, title)
                 end
 
-                fig_out_path = [out_path, 'position_timelines\', fish_name,'\'];
+                % fig_out_path = [out_path, 'position_timelines\', fish_name,'\'];
+                fig_out_path = [out_path, 'tail_timelines\', fish_name,'\'];
                 if ~exist(fig_out_path, 'dir')
                     mkdir(fig_out_path);
                 end
@@ -120,7 +121,7 @@ for k = 1 : numFish
                 fig_out_filename = [fish_name, '_TD_Tail_il_', num2str(il), ...
                     '_trial_', num2str(trial_idx), '_', num2str(head_dir), '.png'];
 
-                saveas(mainFigure, [fig_out_path, fig_out_filename]);
+                saveas(main_figure, [fig_out_path, fig_out_filename]);
                 disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
             end
         end

@@ -1,5 +1,5 @@
 %% Step07_body_data_cleanup_part02.m
-% Updated 02.15.2024
+% Updated 03.24.2024
 % LIMBS Lab
 % Author: Huanying (Joy) Yeh
 
@@ -24,7 +24,17 @@ load([abs_path, '\helper_structs\helper_bad_tags_both.mat']);
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 p2m = 0.0004;
 num_frames = 500;
-thresh = 360;
+
+
+pixel_thresh = 360; % right most pixel thresh is 360 out of 640 for head origin
+valid_percentage_threshold = 92; % Above 92% is good
+
+% For filtering the y values
+Fs = 25;
+Fc = 5; % cutoff frequencyin Hz
+Wn = Fc/(Fs/2); % Cut-off frequency for discrete-time filter
+[b, a] = butter(2, Wn); % butterworth filter parameters
+
 
 %% 2. Populate validity tags
 tally = [];
@@ -45,9 +55,6 @@ for i = 1 : numel(fishNames)
             % all_fish(fish_idx).luminance(il).data(idx).valid_tail_percent = [0, 0, 0];
             all_fish(fish_idx).luminance(il).data(idx).valid_both = [0, 0, 0];
 
-            % [NEW] valid all is for the tail
-            % all_fish(fish_idx).luminance(il).data(idx).valid_all = [0, 0, 0];
-
             validity_tail = zeros(1, 3);
             tail_tags = zeros(1, 3);
 
@@ -58,7 +65,7 @@ for i = 1 : numel(fishNames)
                 idx_end = idx_start + 499;
                 origin_x = all_fish(fish_idx).luminance(il).data(idx).x_origin(idx_start : idx_end, :);
 
-                logicalIndex = origin_x < thresh; % thresh = 360
+                logicalIndex = origin_x < pixel_thresh; % pixel_thresh = 360
 
                 % Assign 1 to elements less than 340 and 0 otherwise using logical indexing
                 resultArray = zeros(size(origin_x));
@@ -66,8 +73,11 @@ for i = 1 : numel(fishNames)
                 good_percentage = sum(resultArray)/500 * 100;
                 
  
-                all_fish(fish_idx).luminance(il).data(idx).valid_tail(rep) = round(good_percentage, 0) == 100;
-                % all_fish(fish_idx).luminance(il).data(idx).valid_tail_percent(rep) = good_percentage;
+                all_fish(fish_idx).luminance(il).data(idx).valid_tail(rep) = ...
+                    round(good_percentage, 0) > valid_percentage_threshold;
+                
+                % [TEMP]
+                all_fish(fish_idx).luminance(il).data(idx).valid_tail_percent(rep) = good_percentage;
 
                 tally(end+1) = good_percentage;
               
@@ -133,23 +143,30 @@ for i = 1 : numel(fishNames)
                 all_fish(fish_idx).luminance(good_il).data(target_idx).valid_both(good_rep) = 1;
             end
 
-            % [NEW] re-interpolate x and y
+            % Re-interpolate x and y
             x_field = strcat('x_rot_rep',num2str(good_rep));
             y_field = strcat('y_rot_rep',num2str(good_rep));
 
             X = all_fish(fish_idx).luminance(good_il).data(target_idx).(x_field);
             Y = all_fish(fish_idx).luminance(good_il).data(target_idx).(y_field);
 
-            % 500 frames total
+            x_tail_og = X(:, 12);
+            y_tail_og = Y(:, 12);
+
+            % 500 frames total 
             for k = 1:num_frames
                 % Fit to 4th order
                 p = polyfit(X(k,:),Y(k,:),4);
                 px = linspace(X(k,1), X(k,end), 23);
                 py = polyval(p,px);
 
-                py2 = interp1(px,py,X(k,:));
+                py2 = interp1(px,py,X(k,:));  
+                if any(isnan(py2)) || any(isinf(py2))   
+                    py2 = fillmissing(py2, 'linear'); % Example using linear interpolation to fill missing values
+                end
+    
                 Y(k,:) = py2(:);
-
+               
                 % [INPUT] Toggle this to see the corrected fish video
                 plot_animation = 0; 
                 if plot_animation == 1
@@ -168,12 +185,16 @@ for i = 1 : numel(fishNames)
 
                     box off
                     time_str = sprintf('%0.2f',round((k-1)/25,2));
-                    arc_len_str = sprintf('%0.2f',round(Arc_Len(k),2)*p2m*100);
-          
+                    
                     grid on
                     pause(1e-10)
                 end
+
+                
             end
+
+            X(:, 12) = filtfilt(b, a, x_tail_og);
+            Y(:, 12) = filtfilt(b, a, y_tail_og);
 
             % Re-populate
             all_fish(fish_idx).luminance(good_il).data(target_idx).(x_field) = X;
