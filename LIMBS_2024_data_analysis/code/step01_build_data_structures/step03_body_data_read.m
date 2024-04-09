@@ -11,8 +11,7 @@
 
 %% 1. Specify folder paths
 parent_dir = fullfile(pwd, '..', '..');
-abs_path = fullfile(parent_dir, 'data\body_bending\');
-out_path = fullfile(parent_dir, 'data_structures\');
+abs_path = fullfile(fullfile(parent_dir, '..'), 'data\body_bending\');
 
 if ~exist(out_path, 'dir')
     mkdir(out_path);

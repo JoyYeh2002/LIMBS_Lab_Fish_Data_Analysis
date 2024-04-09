@@ -57,9 +57,9 @@ for k = 1 : numFish
         end
 
         % Remove raw data fields
-        all_fish(fish_idx).luminance(il).data = rmfield(all_fish(fish_idx).luminance(il).data, ...
-            {'x_data_raw', 'y_data_raw', 'x_rep1', 'x_rep2', 'x_rep3', 'y_rep1', 'y_rep2', 'y_rep3'});
-        
+        % all_fish(fish_idx).luminance(il).data = rmfield(all_fish(fish_idx).luminance(il).data, ...
+        %     {'x_data_raw', 'y_data_raw', 'x_rep1', 'x_rep2', 'x_rep3', 'y_rep1', 'y_rep2', 'y_rep3'});
+        % 
         disp([' -- COMPLETED IL = ', num2str(il), ' --------']);
     end
     disp(['COMPLETED FISH ', fish_name, ' ----------'])
