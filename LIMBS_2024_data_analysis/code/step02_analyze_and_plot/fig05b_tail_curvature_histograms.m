@@ -4,6 +4,10 @@
 
 % Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
 %
+% Caution:
+% - Need to run "fig04b_tail_fft_position_and_velocity.m to obtain the base
+% struct
+% 
 % Content:
 % - Calculate and save tail curvature info to "result_tail_fft_and_curvature.mat"
 % - Plot the following in "\figures"
@@ -23,9 +27,6 @@
 % - Save the struct with curvature. Save in
 % "result_tail_fft_and_curvature.mat"
 
-% Caution:
-% - Need to run "fig04b_tail_fft_position_and_velocity.m to obtain the base
-% struct
 
 close all;
 addpath 'helper_functions'
@@ -122,6 +123,7 @@ for i = 1 : 5
             res(i).luminances(il).tail_curvature_mean = [];
         end
     end
+    disp(['SUCCESS: ', fish_name, ' FFT and curvature data saved.']);
 end
 
 % Save to another struct

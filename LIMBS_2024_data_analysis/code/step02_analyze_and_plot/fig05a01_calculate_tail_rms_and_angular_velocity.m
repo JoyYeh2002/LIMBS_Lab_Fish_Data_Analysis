@@ -1,24 +1,15 @@
-%% fig05c_tail_angular_velocity_distributions.m
-%% fig05c_tail_RMS_and_ngular_velocity_struct_build.m
-% Updated 04.09.2024
+%% fig05a01_calculate_tail_rms_and_angular_velocity.m
+% Updated 04.12.2024
 % LIMBS Lab
 % Author: Huanying (Joy) Yeh
-
+% 
 % Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
 %
 % Content:
-% - Calculate the tail rms (fig5a) and angular velocities (fig5c) and save in "result_tail_rms_and_angular_velocity.mat."
-% - Plot the following in "\figures"
+% - Calculate the tail rms (fig5a) and angular velocities (fig5c) 
+% - Plot the fig5a in "\figures"
 % 
-% - Distribution of angular velocities, tail point 12, then histogram
-% - Then fit the Gaussian distribution, save sigma and peak
-% - Then plot the Gaussian sigma situations + angular velocity
-%
-% - "fig05c01_tail_angular_velocity_hist_3e_hope.png"
-%
-% - These in "\figures_archive\fig05c_tail_velocity_distributions\"
-% - All fish 3d histograms
-% - All fish sigma trends
+% - "fig05a_tail_rms_all_fish.png"
 % 
 % - Save the struct to 
 % "result_tail_rms_and_angular_velocity.mat"
@@ -31,7 +22,7 @@ parent_dir = fullfile(pwd, '..', '..');
 abs_path = fullfile(parent_dir, 'data_structures\');
 out_path = fullfile(parent_dir, 'figures\');
 pdf_path = fullfile(parent_dir, 'figures_pdf\');
-outfile_name = 'result_tail_rms_and_angular_velocity.mat';
+out_filename = 'result_tail_rms_and_angular_velocity.mat';
 
 close all
 
@@ -41,7 +32,7 @@ fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 numFish = 5;
 num_body_pts = 12;
 
-%% 2. Use the "result" struct to store outputs at rep and luminance abstraction levels
+%% 2. Populate "res" struct for tail point RMS and angular velocity
 res = struct();
 
 for i = 1 : numFish
@@ -85,8 +76,8 @@ for i = 1 : numFish
         % fig05b
         if (i == 1) && ((il == 1) || (il == 3) || (il == 9))
             this_fish_v_ang{il} = [];
+            this_fish_rms{il} = [];
         end
-        
     end
 
     % Use a 14x12 matrix to contain the average RMS data
@@ -96,6 +87,7 @@ for i = 1 : numFish
         if ~isempty(this_fish_rms{il})
             this_fish_rms_avg(il, :) = nanmean(this_fish_rms{il}, 1);
         end
+
     end
 
     res(i).lux_values = all_fish(i).lux_values;
@@ -109,6 +101,7 @@ end
 save([abs_path, out_filename], 'res');
 disp("SUCCESS: RMS + Fish velocity struct saved for the 'valid both' tags.")
 
+%% 3. Fig 5a: all fish tail RMS mean
 %% HELPER: Get the 12x3 and 12x1 RMS arrays
 function [rms_displacement] = calculateCleanFullBodyRMS(data)
 
@@ -151,7 +144,7 @@ for i = 1 : 3
         x_disp = x{i} - 220 * p2m; % 500 x 12
         y_disp = y{i} - 110 * p2m;
         angles = rad2deg(atan2(y_disp, x_disp));
-        v_angular = diff(angles) / time_diff; % Unwrap angles to handle discontinuities 499 x 12
+        v_angular = diff(unwrap(angles)) / time_diff; % Unwrap angles to handle discontinuities 499 x 12
 
         v_ang_each_rep{i} = v_angular;
         v_ang_combined = [v_ang_combined; v_angular];
