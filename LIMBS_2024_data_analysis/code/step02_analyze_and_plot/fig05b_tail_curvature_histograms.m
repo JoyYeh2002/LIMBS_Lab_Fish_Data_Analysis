@@ -1,5 +1,4 @@
 %% fig05b_tail_curvature_histogram.m
-% Updated 04.09.2024
 % LIMBS Lab
 % Author: Huanying (Joy) Yeh
 

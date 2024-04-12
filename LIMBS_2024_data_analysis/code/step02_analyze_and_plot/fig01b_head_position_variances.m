@@ -35,13 +35,13 @@ end
 all_fish = load(fullfile(abs_path, 'data_clean_head.mat'), 'h').h;
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 num_fish = 5;
+num_body_pts = 1;
 
 colorMap = cool(num_fish + 1);
 
 %% 2. Calculate x- and y- variances and save to struct
 res = struct();
-
-for i = 1 : num_fish
+ for i = 1 : num_fish
     res(i).name = fishNames{i};
 
     num_il_levels = numel(all_fish(i).data);
@@ -87,9 +87,9 @@ for i = 1 : num_fish
     res(i).varY_mean = this_fish_varY_avg;
 end
 
-outfile_name = 'result_head_variances.mat';
-save([abs_path, outfile_name], 'res');
-disp(['SUCCESS: ', outfile_name, ' saved.'])
+% outfile_name = 'result_head_variances.mat';
+% save([abs_path, outfile_name], 'res');
+% disp(['SUCCESS: ', outfile_name, ' saved.'])
 
 %% 3. Plot all fish scatter plots with sigmoid fit
 for field_to_plot = ['X', 'Y']
@@ -188,10 +188,10 @@ for field_to_plot = ['X', 'Y']
     else
         fig_idx = '2';
     end
-    saveas(gcf, [out_path, 'fig01b0', fig_idx, '_head_', field_to_plot, '_position_variances.png']);
-    saveas(gcf, [pdf_path, 'fig01b0', fig_idx, '_head_', field_to_plot, '_position_variances.pdf']);
-
-    disp(['SUCCESS: head', field_to_plot, ' position variances for all fish is saved.']);
+    % saveas(gcf, [out_path, 'fig01b0', fig_idx, '_head_', field_to_plot, '_position_variances.png']);
+    % saveas(gcf, [pdf_path, 'fig01b0', fig_idx, '_head_', field_to_plot, '_position_variances.pdf']);
+    % 
+    % disp(['SUCCESS: head', field_to_plot, ' position variances for all fish is saved.']);
 end
 
 %% Helper: sigmoid fit, generated from curve fitter tool

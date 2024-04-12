@@ -10,8 +10,7 @@
 %
 % Out file names:
 % - 'fig02a_system_bode_plot.png';
-%
-% [TODO] 
+
 
 close all;
 close all;
@@ -20,8 +19,12 @@ close all;
 parent_dir = fullfile(pwd, '..', '..');
 abs_path = fullfile(parent_dir, 'data_structures\');
 out_path = fullfile(parent_dir, 'figures\');
+out_archive_path = fullfile(parent_dir, 'figures_archive\fig02a_bode_plot\');
 pdf_path = fullfile(parent_dir, 'figures_pdf\');
-archive_path = fullfile(parent_dir, 'figures_archive\');
+
+if ~exist(out_archive_path, 'dir')
+    mkdir(out_archive_path);
+end
 
 if ~exist(out_path, 'dir')
     mkdir(out_path);
@@ -35,7 +38,6 @@ end
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 numIls = [14, 9, 11, 9, 9];
 numFish = 5;
-
 
 all_fish = load(fullfile(abs_path, 'data_clean_head.mat'), 'h').h;
 shuttle = load(fullfile(abs_path, '\helper_structs\helper_shuttle.mat'), 'shuttle').shuttle;
@@ -142,7 +144,7 @@ for fish_idx = 1 : numFish
     h2.YAxis.FontSize = 9;
     ylabel('Phase(deg)', 'FontSize', axisFontSize);
     
-    saveas(gcf, [archive_path, 'fig02a_bode_plot_', fish_name, '.png']);
+    saveas(gcf, [out_archive_path, fish_name, '.png']);
    
     % Only save Finn to the output path
     if fish_name == "Finn"
