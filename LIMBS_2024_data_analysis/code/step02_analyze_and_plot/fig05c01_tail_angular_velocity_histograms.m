@@ -79,6 +79,40 @@ for i =  1 : numFish
         end
     end
 
+    [X, Y] = meshgrid(edges(1:end-1), lux);
+    figure('Color', 'white', 'Position', position_coords);
+
+    % p = waterfall(X, Y,hist_values' * 100);
+    p = surf(X, Y,hist_values' * 100);
+    set(gca, 'YScale', 'log');
+    % set(gca, 'ZScale', 'log');
+    
+    p.FaceAlpha = alpha;
+    p.EdgeColor = 'interp';
+    p.LineWidth = 2;
+    view(view_coords);
+    % shading interp
+  
+    grid(gca, 'off');
+
+    xlabel(x_label);
+    ylabel('Lux Values (log scale)')
+    
+    %yticks(lux);
+    yticks([0, 0.2, 1, 2, 2.5, 5, 7, 9, 15, 60, 150, 210])
+
+    zlabel('Probability (%)')
+    ylim(lux_axis_limit);
+    zlim(z_limit * 100);
+    zticks([0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 20, 30])
+
+
+    % Set ticks for the color bar
+    colorbar;
+    % map = winter(num_il_levels);
+
+    colormap(map);
+    title([fish_name, plotname_prefix, num2str(num_il_levels), ' Luminance Levels']);
  
     % fig_out_path = [out_path, 'RMS_plots\04-09_Angular_Velocity\'];
     fig_out_path = [out_path, '\angular_velocity_real_plots\'];

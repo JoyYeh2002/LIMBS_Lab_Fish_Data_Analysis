@@ -78,7 +78,6 @@ for i =  1 : numFish
     edges = linspace(min(data_cell{2}(:)), max(data_cell{2}(:)), resolution+1); % Adjust the range based on your data
     hist_values = zeros(length(edges)-1, numel(data_cell));
 
- 
   
     fig_out_filename = [filename_prefix, num2str(view_coords), fish_name, 'surf.png'];
 

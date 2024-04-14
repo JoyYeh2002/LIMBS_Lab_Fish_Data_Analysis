@@ -96,14 +96,9 @@ for i = 1 : 5
             v_percentage = all_fish(i).luminance(il).data(trial_idx).valid_tail_percent;
             % v = [1, 1, 1];
 
-            for rep = 1: 3 %range_rep
-
-                % Grab the data
-                valid = v(rep);
-
-                if valid == 1
-                    % Get meta data
-                  
+            for rep = 1: 3 
+                % Use only the valid data
+                if v(rep) == 1
                     v_percent = v_percentage(rep);
                     
                     x_tail = all_fish(i).luminance(il).data(trial_idx).(['x_rot_rep', num2str(rep)]);
