@@ -33,7 +33,7 @@ close all
 
 %% 2. Load the FFT result struct
 fft_amp = load(fullfile(abs_path, 'data_clean_body.mat'), 'all_fish').all_fish;
-res = load(fullfile(abs_path, 'result_tail_fft.mat'), 'res').res;
+res = load(fullfile(abs_path, 'result_tail_fft_and_curvature.mat'), 'res').res;
 
 p2m = 0.0004;
 num_frames = 500;
