@@ -6,7 +6,7 @@
 % Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
 %
 % Content:
-% - Plot angular velocities (fig5c) in surface plot 
+% - Plot angular velocities (fig5c) in surface plot
 % - Loaded from "result_tail_rms_and_angular_velocity.mat."
 % - Plot the following in "\figures"
 %
@@ -24,7 +24,7 @@ abs_path = fullfile(parent_dir, 'data_structures\');
 out_path = fullfile(parent_dir, 'figures\');
 pdf_path = fullfile(parent_dir, 'figures_pdf\');
 
-out_archive_path = fullfile(parent_dir, 'figures_archive\fig05c_tail_ang_vel_surf\');
+out_archive_path = fullfile(parent_dir, 'figures_archive\fig05c_tail_angular_velocity_histograms\');
 if ~exist(out_archive_path, 'dir')
     mkdir(out_archive_path);
 end
@@ -32,15 +32,18 @@ end
 
 %% 2. Load the full body struct and tail FFT struct
 all_fish = load(fullfile(abs_path, 'data_clean_body.mat'), 'all_fish').all_fish;
-res  = load(fullfile(abs_path, 'result_tail_rms_and_angular_velocity.mat'), 'res').res;
+res = load(fullfile(abs_path, 'result_tail_positions.mat'), 'raw').raw;
 
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
-numFish = 5;
+num_fish = 5;
 num_body_pts = 12;
 resolution = 100;
+p2m = 0.004;
+
+time_diff = 0.04;
 
 lux_axis_limit = [0, 210];
-z_limit = [0, 0.1];
+z_limit = [0, 0.18];
 
 %% Step16_plot_angular_velocity_distributions.m
 %% 1. Load in the data
@@ -49,80 +52,99 @@ view_coords = [30 30];
 alpha = 1;
 
 %% 2. [User inputs] for adjusting the plot
-data_field = "v_ang";
 map = magma;
 target_body_pt = 12;
-
 position_coords = [50, 50, 700, 450];
 
-% Case statements
 
-
-%% 3. Plot the waterfall
-for i =  1 : numFish
+%% 3. Populate struct data for result_tail_angular_velocity.mat
+for i =  1 : num_fish
     fish_name = fishNames{i};
-    num_il_levels = numel(res(i).luminance);
-    lux = res(i).lux_values;
+    num_il_levels = numel(res(i).luminances);
 
-    % data = res(i).velocities;
-    data = res(i).(data_field);
+    for il = 1 : num_il_levels
+        num_trials = numel(res(i).luminances(il).x_tail);
+        if num_trials < 4
+            continue;
+        else
+            v_ang_this_il = [];
+            for trial_idx = 1 : num_trials
+                x = cell2mat(res(i).luminances(il).x_tail(trial_idx));
+                y = cell2mat(res(i).luminances(il).y_tail(trial_idx));
 
-    data_cell = data';
+                x_disp = x - 220 * p2m; % 500 x 12
+                y_disp = y - 110 * p2m;
+                angles = rad2deg(atan2(y_disp, x_disp));
+                v_angular = diff(unwrap(angles)) / time_diff;
+                res(i).luminances(il).tail_v_ang = v_angular;
+                v_ang_this_il = [v_ang_this_il; v_angular];
+            end
+        end
 
-    edges = linspace(min(data_cell{2}(:)), max(data_cell{2}(:)), resolution+1); % Adjust the range based on your data
+        res(i).luminances(il).tail_v_ang_all = v_ang_this_il;
+    end
+end
+
+% Save to struct
+save([abs_path, 'result_tail_angular_velocity.mat'], 'res');
+disp("Tail FFT information saved in 'result_tail_angular_velocity.mat'.");
+
+
+% ------------------ Plotting Start Here ---------------------
+for i = 1 : num_fish
+    fish_name = fishNames{i};
+    data_cell = {res(i).luminances.tail_v_ang_all};
+
+    edges = linspace(min(data_cell{2}), max(data_cell{2}), resolution+1); % Adjust the range based on your data
     hist_values = zeros(length(edges)-1, numel(data_cell));
 
     % Compute histograms for each array
     for k = 1:numel(data_cell)
         if ~isempty(data_cell{k})
-        hist_values(:, k) = histcounts(data_cell{k}(:, target_body_pt), edges, 'Normalization', 'probability');
+            hist_values(:, k) = histcounts(data_cell{k}, edges, 'Normalization', 'probability');
         end
     end
 
+    lux = [res(i).luminances.lux];
     [X, Y] = meshgrid(edges(1:end-1), lux);
     figure('Color', 'white', 'Position', position_coords);
 
-    % p = waterfall(X, Y,hist_values' * 100);
-    p = surf(X, Y,hist_values' * 100);
+    p = waterfall(X, Y,hist_values' * 100);
+    % p = surf(X, Y, hist_values' * 100);
     set(gca, 'YScale', 'log');
     % set(gca, 'ZScale', 'log');
-    
+
     p.FaceAlpha = alpha;
     p.EdgeColor = 'interp';
     p.LineWidth = 2;
     view(view_coords);
     % shading interp
-  
     grid(gca, 'off');
 
     xlabel('Tail Angular Velocity Distribution (cm/s)');
     ylabel('Lux Values (log scale)')
-    
+
     %yticks(lux);
     yticks([0, 0.2, 1, 2, 2.5, 5, 7, 9, 15, 60, 150, 210])
 
     zlabel('Probability (%)')
     ylim(lux_axis_limit);
     zlim(z_limit * 100);
-    zticks([0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 20, 30])
+    zticks([0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 20, 30, 50])
 
-
-    % Set ticks for the color bar
     colorbar;
     % map = winter(num_il_levels);
 
     colormap(map);
-    title([fish_name, plotname_prefix, num2str(num_il_levels), ' Luminance Levels']);
- 
-    % fig_out_path = [out_path, 'RMS_plots\04-09_Angular_Velocity\'];
+    title([fish_name, ' Tail Angular Velocity Distribution, ', num2str(num_il_levels), ' Luminance Levels']);
+
     fig_out_path = [out_path, '\angular_velocity_real_plots\'];
     if ~exist(fig_out_path, 'dir')
         mkdir(fig_out_path);
     end
-  
-    fig_out_filename = [filename_prefix, num2str(view_coords), fish_name, '.png'];
 
-    saveas(gcf, [fig_out_path, fig_out_filename]);
+    fig_out_filename = ['fig05c01_tail_angular_velocity_histograms_', num2str(view_coords), fish_name, '.png'];
+    saveas(gcf, [out_archive_path, fig_out_filename]);
     disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
 
 end
