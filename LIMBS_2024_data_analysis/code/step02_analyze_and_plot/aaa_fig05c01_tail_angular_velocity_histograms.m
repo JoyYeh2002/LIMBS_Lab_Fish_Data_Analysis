@@ -1,4 +1,4 @@
-%% fig05c_tail_angular_velocity_gaussian.m
+%% fig05c01_tail_angular_velocity_histograms.m
 % Updated 04.09.2024
 % LIMBS Lab
 % Author: Huanying (Joy) Yeh
@@ -6,13 +6,12 @@
 % Experiment Name: Eigenmannia Virescens Luminance + Locomotion Comparisons
 %
 % Content:
+% - Use result_tail_positions.m to calculate the histogram values, then get
+% "result_tail_angular_velocity.mat"
 % - Plot angular velocities (fig5c) in surface plot
-% - Loaded from "result_tail_rms_and_angular_velocity.mat."
 % - Plot the following in "\figures"
-%
 % - "fig05c01_tail_angular_velocity_histograms.png"
-%
-% - These in "\figures_archive\fig05c_tail_velocity_distributions\"
+% - These in "\figures_archive\fig05c_tail_velocity_distributions\":
 % - All fish 3d histograms
 
 close all;
@@ -108,6 +107,7 @@ for i = 1 : num_fish
     lux = [res(i).luminances.lux];
     [X, Y] = meshgrid(edges(1:end-1), lux);
     figure('Color', 'white', 'Position', position_coords);
+    set(gcf, 'Visible', 'off');
 
     p = waterfall(X, Y,hist_values' * 100);
     % p = surf(X, Y, hist_values' * 100);
@@ -143,7 +143,7 @@ for i = 1 : num_fish
         mkdir(fig_out_path);
     end
 
-    fig_out_filename = ['fig05c01_tail_angular_velocity_histograms_', num2str(view_coords), fish_name, '.png'];
+    fig_out_filename = ['fig05c01_tail_angular_velocity_histograms_', num2str(view_coords), '_', fish_name, '.png'];
     saveas(gcf, [out_archive_path, fig_out_filename]);
     disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
 

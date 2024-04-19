@@ -244,5 +244,7 @@ for i = 1:5
         saveas(top_figure, [out_path, 'fig05b0', num2str(i+1), '_tail_curve_hist_top_view_', fish_name, '.png']);
         saveas(top_figure, [pdf_path, 'fig05b0', num2str(i+1), '_tail_curve_hist_top_view_', fish_name, '.pdf']);
         disp(['SUCCESS: fig05b for ', fish_name, ' saved to .png and .pdf.'])
+    
+    
     end
 end
