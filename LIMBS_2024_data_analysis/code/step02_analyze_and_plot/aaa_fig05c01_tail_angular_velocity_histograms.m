@@ -55,6 +55,13 @@ map = magma;
 target_body_pt = 12;
 position_coords = [50, 50, 700, 450];
 
+ % For filtering the y values
+Fs = 25;
+Fc = 4; % cutoff frequency in Hz
+Wn = Fc/(Fs/2); % Cut-off frequency for discrete-time filter
+[b, a] = butter(2, Wn); % butterworth filter parameters
+
+
 
 %% 3. Populate struct data for result_tail_angular_velocity.mat
 for i =  1 : num_fish
@@ -74,8 +81,26 @@ for i =  1 : num_fish
                 x_disp = x - 220 * p2m; % 500 x 12
                 y_disp = y - 110 * p2m;
                 angles = rad2deg(atan2(y_disp, x_disp));
+                angles = filtfilt(b, a, angles);
+
+                plot(1:500, angles);
                 v_angular = diff(unwrap(angles)) / time_diff;
-                res(i).luminances(il).tail_v_ang = v_angular;
+
+                % [New] filter the angles up to 4Hz
+                % 
+                % [f1, P1] = singleSidedSpectra(v_angular, Fs);
+                % plot(f1, P1);
+                
+                v_angular = filtfilt(b, a, v_angular);
+                
+                % [f2, P2] = singleSidedSpectra(v_angular, Fs);
+                % hold on
+                % plot(f2, P2);
+                % 
+                % legend("original", "filtered at 4Hz")
+
+
+                res(i).luminances(il).tail_v_ang{trial_idx}= v_angular;
                 v_ang_this_il = [v_ang_this_il; v_angular];
             end
         end
@@ -107,12 +132,12 @@ for i = 1 : num_fish
     lux = [res(i).luminances.lux];
     [X, Y] = meshgrid(edges(1:end-1), lux);
     figure('Color', 'white', 'Position', position_coords);
-    set(gcf, 'Visible', 'off');
+    set(gcf, 'Visible', 'on');
 
     p = waterfall(X, Y,hist_values' * 100);
     % p = surf(X, Y, hist_values' * 100);
     set(gca, 'YScale', 'log');
-    % set(gca, 'ZScale', 'log');
+    set(gca, 'ZScale', 'log');
 
     p.FaceAlpha = alpha;
     p.EdgeColor = 'interp';
@@ -147,5 +172,21 @@ for i = 1 : num_fish
     saveas(gcf, [out_archive_path, fig_out_filename]);
     disp(['SUCCESS: ', fig_out_filename, ' is saved.']);
 
+end
+
+
+%% Helper: calculate FFT amplitude of input data X and the sampling freq Fs
+function [f,P1] = singleSidedSpectra(X,Fs)
+
+X(isnan(X))=[];
+X = X - mean(X);
+
+Y = fft(X);
+L = length(X);
+
+P2 = abs(Y/L * 2);
+P1 = P2(1:round(L/2)+1);
+
+f = Fs*(0:round(L/2))/L;
 end
 

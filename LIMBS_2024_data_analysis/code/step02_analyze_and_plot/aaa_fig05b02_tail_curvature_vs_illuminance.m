@@ -67,8 +67,8 @@ for i = 1:num_fish
     % Centered, then smoothed for x-variance values
     data = curvature_mean{i};
     % data_smoothed_centered = data;
-    % data_smoothed_centered = data - (this_fish_mean(i) - mean_value_all);
-    data_smoothed_centered = movmean(data - (this_fish_mean(i) - mean_value_all), 2);
+    data_smoothed_centered = data - (this_fish_mean(i) - mean_value_all);
+    % data_smoothed_centered = movmean(data - (this_fish_mean(i) - mean_value_all), 2);
     
     % Collect all data for Sigmoid fitting
     all_lux = [all_lux, lux];
@@ -92,7 +92,7 @@ d = fitted_model.d;
 plot(exp(x_sample_points), y_sample_points * 100, 'Color', 'k', 'LineWidth', 3)
 
 grid on; % Display grid
-title(' All Fish Tail Average RMS Values (Centered, MovMean = 2)'); % Set plot title
+title(' All Fish Tail Curvature (Mean-Centered)'); % Set plot title
 subtitle(['Fitted Sigmoid: a=', num2str(a), ', b=', num2str(b), ...
     ', c=', num2str(c), ', d=', num2str(d)]);
 
