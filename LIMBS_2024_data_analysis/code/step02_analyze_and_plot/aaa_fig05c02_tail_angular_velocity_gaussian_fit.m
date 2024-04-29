@@ -35,27 +35,17 @@ p2m = 0.004;
 
 time_diff = 0.04;
 
-cell_mu = {};
-cell_sigma = {};
-
-GMM = {};
-GMM_mu = {};
-GMM_sigma = {};
-GMM_component_ratio = {};
-%
-
-% mode = 'gaussian'
 
 mode = 'GMM_symm'
-num_components = 2
+num_components = 2;
 
-out_archive_path = fullfile(parent_dir, ['figures_archive\fig05c02b_tail_angular_velocity_', mode, ...
-    '_', num2str(num_components), '\']);
+out_archive_path = fullfile(parent_dir, 'figures_archive\fig05c02b_tail_angular_velocity_kurtosis_ranked\');
 
 if ~exist(out_archive_path, 'dir')
     mkdir(out_archive_path);
 end
 
+all_kurtosis = [];
 %% 3. Populate struct data for result_tail_angular_velocity.mat
 for i = 1 : num_fish
     fish_name = fishNames{i};
@@ -68,34 +58,56 @@ for i = 1 : num_fish
         else
             % 4491 x 1 double
             data = res(i).luminances(il).tail_v_ang_all;
+            num_datapoints = numel(res(i).luminances(il).y_tail);
 
             data = [data;-data];
 
-            if strcmp(mode, 'GMM_symm')
-                options = statset('MaxIter',500);
-                gmm= fitgmdist(data,num_components, 'Options',options);
-                % GMM{i, il} = gmm;
-                % GMM_mu{i, il} = gmm.mu; % 5 x 14 x 2
-                % GMM_sigma{i, il} = squeeze(gmm.Sigma); % 5 x 14 x 2
-                % GMM_component_ratio{i, il} = gmm.ComponentProportion;
 
-                res(i).luminances(il).GMM = gmm;
-                res(i).luminances(il).mu = gmm.mu;
-                res(i).luminances(il).sigma = squeeze(gmm.Sigma);
-                res(i).luminances(il).component_ratio = gmm.ComponentProportion;
+            options = statset('MaxIter',500);
+            gmm = fitgmdist(data, num_components, 'Options',options);
 
-            for bin_width = 0.8
-                plot_histogram_and_curve(mode, data, bin_width, gmm, i, il, gmm.mu, gmm.Sigma, out_archive_path);
-                fprintf('%s for fish = %d, il = %d figure is saved.\n', mode, i, il)
-            end
-          
-            elseif strcmp(mode, 'student')
-         
-                pd = fitdist(data, 'tlocationscale');
+            % Calculate kurtosis
+            x = linspace(min(data), max(data), 1000);
+            y = pdf(gmm, x');
+            kurt = kurtosis(y);
+            all_kurtosis = [all_kurtosis; kurt];
 
-                % Plot histogram with adjusted bin width
-                plot_histogram_and_curve(mode, data, pd, i, il, pd.mu, pd.sigma, out_archive_path);
-            end
+            % Goodness of fit test
+           
+
+            % Calculate standard deviation ratio (assuming two components)
+            sigma1 = sqrt(gmm.Sigma(:,:,1));
+            sigma2 = sqrt(gmm.Sigma(:,:,2));
+            std_ratio = sigma1 / sigma2;
+
+            % --------------------------- Plotting -------------------
+            % figure('Visible', 'off');
+            % 
+            % histogram(data, 'Normalization', 'probability', 'BinWidth', 0.8, 'FaceColor', 'auto');
+            % hold on;
+            % plot(x, y, 'r', 'LineWidth', 2);
+            % ylim([0.0001, 0.16])
+            % yticks([0, 0.01, 0.05, 0.08, 0.1, 0.15]);
+            % 
+            % set(gca, 'YScale', 'log');
+            % title(sprintf('GMM %d.%d, kurtosis = %.2f, sigma ratio = %.2f', i, il, kurt, std_ratio));
+            % legend(sprintf('Fish %d, Il %d, %d Trials', i, il, num_datapoints), 'GMM Symmetric');
+            % 
+            % saveas(gcf, fullfile(out_archive_path, sprintf('kurt_%.2f_fish_%d_IL_%d.png', kurt, i, il)));
+
+            % --------------------------------------------------------
+            res(i).luminances(il).GMM = gmm;
+            res(i).luminances(il).mu = gmm.mu;
+            res(i).luminances(il).sigma = squeeze(gmm.Sigma);
+            res(i).luminances(il).std_ratio = std_ratio;
+            res(i).luminances(il).component_ratio = gmm.ComponentProportion;
+            res(i).luminances(il).kurtosis = kurt;
+
+            %
+            % for bin_width = 0.8
+            %     plot_histogram_and_curve(mode, data, bin_width, gmm, i, il, gmm.mu, gmm.Sigma, out_archive_path);
+            %     fprintf('%s for fish = %d, il = %d figure is saved.\n', mode, i, il)
+            % end
         end
     end
 end
@@ -104,12 +116,11 @@ end
 % save([abs_path, 'result_GMM_params_', num2str(num_components), '_components.mat'], 'GMM', 'GMM_mu', 'GMM_sigma', 'GMM_component_ratio');
 % disp("Tail gaussian fits saved in 'result_GMM_params_2_components.mat'.");
 
-save([abs_path, 'result_GMM_symm_', num2str(num_components), '_components.mat'], 'res');
-disp("Tail gaussian fits saved in 'result_GMM_params_2_components.mat'.");
-
+save([abs_path, 'result_GMM_kurtosis.mat'], 'res');
+disp("Tail gaussian fits saved in 'result_GMM_kurtosis.mat'.");
 
 % ------------------ Plotting Start Here --------------------
-% 
+%
 % function plot_histogram_and_curve(mode, data, num_bins, distribution, i, il, mu, sigma, out_archive_path)
 function plot_histogram_and_curve(mode, data, bin_width, distribution, i, il, mu, sigma, out_archive_path)
 % Generate x values for the curve

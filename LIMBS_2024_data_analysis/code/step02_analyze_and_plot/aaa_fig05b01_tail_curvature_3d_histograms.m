@@ -33,8 +33,8 @@ addpath 'helper_functions'
 
 
 %% 0: inputs - whether to plot the 3d distributions or 2d
-populate_curvature_struct = 0;
-plot_3d = 1;
+populate_curvature_struct = 1;
+plot_3d = 0;
 plot_2d = 0;
 
 
@@ -115,7 +115,7 @@ if populate_curvature_struct == 1
 
                 this_il_tail_curves = nan(500, num_valid_trials);
                 for idx = 1 : num_valid_trials
-                    data_elements = res(i).luminances(il).body_curvature;
+                    data_elements = res(i).luminances(il).body_curvature; % 1 x 6
                     curv_arr = cell2mat(data_elements(:, idx)); % 500 x 10
                     curv_arr_tail = curv_arr(:, end); % 500 x 1
 
@@ -127,8 +127,12 @@ if populate_curvature_struct == 1
                 this_il_tail_curves_mean = mean(this_il_tail_curves, 2);
                 res(i).luminances(il).tail_curvature_mean = this_il_tail_curves_mean;
 
+                res(i).luminances(il).tail_curvature_std = std(this_il_tail_curves(:), 'omitnan');
+
             else % invalid
                 res(i).luminances(il).tail_curvature_mean = [];
+                res(i).luminances(il).tail_curvature_std = [];
+
             end
         end
         disp(['SUCCESS: ', fish_name, ' FFT and curvature data saved.']);

@@ -23,61 +23,57 @@ end
 
 
 %% 2. Load the full body struct and tail FFT struct
-load(fullfile(abs_path, 'result_GMM_symm_2_components.mat'));
+res = load(fullfile(abs_path, 'result_GMM_kurtosis.mat'), 'res').res;
 
 fishNames = {'Hope', 'Len', 'Doris', 'Finn', 'Ruby'}; % consistent with SICB
 num_fish = 5;
 
 %% Create all-data collectors
-%% 2. Gather data
-
+%% 2. Gather lux data for fitting distributions
 all_lux = [];
-for i = 1:num_fish
-    fish_name = fishNames{i};
 
-    if i == 1 % Get rid of Hope lux 1, 3, 9
-        lux = [0.4, 2, 3.5, 5.5, 7, 9.5, 15, 30, 60, 150, 210];     
-    else
-        lux = [res(i).luminances.lux];
-    end
+% Fish lux cell array 5 x 14
+fish_lux = cell(5, 1);
 
-    all_lux = [all_lux, lux];
-end
+mu01 = cell(5, 1);
+mu02 = cell(5, 1);
 
-all_mu01 = [];
-all_mu02 = [];
+sigma01 = cell(5, 1);
+sigma02 = cell(5, 1);
 
-all_sigma01 = [];
-all_sigma02 = [];
+kurtosis = cell(5, 1);
+std_ratio = cell(5, 1);
 
-all_ratio01 = [];
-all_ratio02 = [];
+% all_ratio01 = [];
+% all_ratio02 = [];
 
 %% 3. Loop through data structure to assemble data
 for i = 1 : num_fish
     fish_name = fishNames{i};
     num_il_levels = numel(res(i).luminances);
 
+    count = 1;
     for il = 1 : num_il_levels
         num_trials = numel(res(i).luminances(il).x_tail);
-        if ~isempty(GMM_mu{i, il})
-            mu01 = GMM_mu{i, il}(1)';
-            sigma01 = GMM_sigma{i, il}(1)';
-            ratio01 = GMM_component_ratio{i, il}(1);
-
-            mu02 = GMM_mu{i, il}(2)';
-            sigma02 = GMM_sigma{i, il}(2)';
-            ratio02 = GMM_component_ratio{i, il}(2);
+        if ~isempty(res(i).luminances(il).mu)
+           
+            fish_lux{i, count} = res(i).luminances(il).lux;
 
             % populate into all_data
-            all_mu01 = [all_mu01, mu01];
-            all_mu02 = [all_mu02, mu02];
+            this_data = res(i).luminances(il);
+            mu01{i, count} = this_data.mu(1);
+            mu02{i, count} = this_data.mu(2);
+            sigma01{i, count} = this_data.sigma(1);
+            sigma02{i, count} = this_data.sigma(2);
 
-            all_sigma01 = [all_sigma01, sigma01];
-            all_sigma02 = [all_sigma02, sigma02];
+            kurtosis{i, count} = this_data.kurtosis;
+            std_ratio{i, count} = this_data.std_ratio;
 
-            all_ratio01 = [all_ratio01, ratio01];
-            all_ratio02 = [all_ratio02, ratio02];
+           
+            count = count + 1;
+            
+            % all_ratio01 = [all_ratio01, ratio01];
+            % all_ratio02 = [all_ratio02, ratio02];
 
         else
             continue;
@@ -86,12 +82,45 @@ for i = 1 : num_fish
 end
 
 
+
 %% 4. Start plotting
+% Convert cell arrays to numeric arrays and remove empty elements
 
+% Define colors for each row
+colorMap = lines(5); % Using the 'lines' colormap
 
-scatter(all_lux, all_sigma01, 'magenta');
-hold on
-scatter(all_lux, all_sigma02, 'green');
-legend()
+% Scatter plot with different colors for each row
+figure;
+hold on;
+field_name = 'kurtosis'; % [INPUT] Change these between 'kurtosis', 'sigma_01', 'sigma_02'
+y_axis_lim = [0, 8]; % [INPUT] change the y-axis limite here (kurtotis has [0, 8], sigmas have [0, 400])
+
+for i = 1:5
+
+    lux_arr = [fish_lux{i, :}];
+    data_arr = eval(['[' field_name '{i, :}]']);
+    data_arr = movmean(data_arr, 3);
+    plot(lux_arr, data_arr, '-', 'Color', colorMap(i, :), 'LineWidth', 2, 'Marker', 'o', 'MarkerSize', 3, 'MarkerFaceColor', colorMap(i, :));
+end
+
+title(sprintf('Tail Velocity GMM %s vs. Illuminance', field_name));
+legend('Fish 1', 'Fish 2', 'Fish 3', 'Fish 4', 'Fish 5', 'Location', 'best');
+
+hold off;
+
+% Set labels and title
+grid on; 
+xlabel('lux');
+ylabel(field_name);
+
+%%  --------- lux ticks in log scale ----------------
+lux_ticks = [0.4, 2, 3.5, 7, 9.5, 15, 30, 60, 210];
+xticks(lux_ticks);
+xticklabels(lux_ticks);
+xlim([0, 220]);
+ylim(y_axis_lim);
+set(gca, 'XScale', 'log'); 
+% ---------------------------------------------------
+
 
 

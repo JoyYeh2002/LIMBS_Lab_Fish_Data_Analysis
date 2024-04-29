@@ -60,7 +60,7 @@ k = [2, 3, 5, 7, 11, 13, 19, 23, 29, 31, 37, 41];
 freq_data = k * 0.05;
 
 
-%% 2. Loop through and rotate all fish w.r.t. main body axis
+%% 2. Plotting starts here
 colorMap = {'#000000', '#112d80', '#234099', '#2d50b4', '#5070c7', ...
     '#91a6e2', '#acc0fa', '#cbd0ee', '#ececec'};
 
@@ -87,10 +87,8 @@ for fish_idx = 1 : numFish
 
     for il = 1 : num_il_levels
         data = all_fish(fish_idx).data(il).(gainField);
-        % c = colorMap{il};
         c = colorMap(il, :);
-        semilogx(freq_data, smooth(data), ...
-            'color', c, 'LineWidth', lineWidth);
+        semilogx(freq_data, smooth(data), 'color', c, 'LineWidth', lineWidth);
     end
 
     axisFontSize = 12;
@@ -123,12 +121,8 @@ for fish_idx = 1 : numFish
     hold on
     for il = 1 : num_il_levels
         data = all_fish(fish_idx).data(il).(phaseField);
-
-        % c = colorMap{il};
         c = colorMap(il, :);
-        semilogx(freq_data, smooth(data), ...
-            'color', c, 'LineWidth', lineWidth);
-
+        semilogx(freq_data, smooth(data), 'color', c, 'LineWidth', lineWidth);
     end
 
     h2.XGrid = 'on';
